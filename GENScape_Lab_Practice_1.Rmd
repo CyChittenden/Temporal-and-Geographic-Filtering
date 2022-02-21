@@ -1,0 +1,68 @@
+---
+title: "GENScape_Lab_Practice_1"
+author: "Cy Chittenden"
+date: "11/7/2021"
+output: html_document
+---
+
+```{r}
+#Import data:
+
+#1240 annotations:
+data_1240 <- read.delim("v50.0_1240k_public.anno")
+
+#HO annotations:
+data_HO <- read.delim("v50.0_HO_public.anno")
+
+#install and load country code:
+library(countrycode)
+
+
+#load stringr
+library(stringr)
+```
+
+```{r}
+#Use codelist$region23 to seperate samples by Europe, Africa, and western Asia
+#Create two dataframes, 1 from 1240 data and 1 from HO data, that contain all info about individuals from Europe, Africa, and western Asia
+
+
+#Convert country names to region23 format:
+converted_countries_1240 <- countrycode(sourcevar = data_1240$Country, origin = "country.name", destination = "region23")
+converted_countries_HO <- countrycode(sourcevar = data_HO$Country, origin = "country.name", destination = "region23")
+
+#1240 data:
+western_asia_indexes_1240 <- which(converted_countries_1240 == "Western Asia")
+europe_indexes_1240 <- which((str_detect(converted_countries_1240, "Europe")) == TRUE)
+africa_indexes_1240 <- which((str_detect(converted_countries_1240, "Africa")) == TRUE)
+filtered_1240_data <- data_1240[c(western_asia_indexes_1240, europe_indexes_1240, africa_indexes_1240),] #Filtered by region of interest data
+
+
+#HO data:
+western_asia_indexes_HO <- which(converted_countries_HO == "Western Asia")
+europe_indexes_HO <- which((str_detect(converted_countries_HO, "Europe")) == TRUE)
+africa_indexes_HO <- which((str_detect(converted_countries_HO, "Africa")) == TRUE)
+filtered_HO_data <- data_HO[c(western_asia_indexes_HO, europe_indexes_HO, africa_indexes_HO),] #Filtered by region of interest data
+
+
+#Export filtered data
+write.table(filtered_1240_data, file = "filtered_1240_data.csv", col.names = T, row.names = F, quote = F, sep = '\t')
+write.table(filtered_HO_data, file = "filtered_HO_data.csv", col.names = T, row.names = F, quote = F, sep = '\t')
+
+
+
+
+```
+
+#Filter data for modern populations
+```{r}
+#filter 1240 data by individuals with "present" in their age column
+present_1240k_data <- filtered_1240_data[which((str_detect(filtered_1240_data$Full.Date..One.of.two.formats...Format.1..95.4..CI.calibrated.radiocarbon.age..Conventional.Radiocarbon.Age.BP..Lab.number..e.g..2624.2350.calBCE..3990.40.BP..Ua.35016....Format.2..Archaeological.context.range..e.g..2500.1700.BCE, "present")) == TRUE), ]
+
+modern_1240k_groupIDs <- present_1240k_data$Group.ID
+
+modern_1240k_groupIDs <- unique(modern_1240k_groupIDs)
+
+
+
+```
